@@ -89,3 +89,8 @@ class ResNetModel(torch.nn.Module):
         x = self.backbone(x)
         x = self.classifier(x)
         return x
+
+
+model = ResNetModel(input_channels=3)
+img = torch.tensor
+

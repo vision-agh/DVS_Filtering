@@ -28,3 +28,16 @@ Na razie biblioteki to pytorch i standardowe. Dodaje PyTorch Geometric i potencj
 
 
 Dodatkowo omegaconf
+
+
+conda create -y -n dvs_fil python=3.9
+conda activate dvs_fil
+
+conda install pytorch==2.4.1 torchvision==0.19.1 torchaudio==2.4.1 pytorch-cuda=12.1 -c pytorch -c nvidia
+conda install h5py
+conda install blosc-hdf5-plugin lightning -c conda-forge
+
+pip install matplotlib tqdm numba scikit-learn wandb pyyaml opencv-python pybind11 omegaconf
+pip install torch_geometric
+pip install pyg_lib torch_scatter torch_sparse torch_cluster torch_spline_conv -f https://data.pyg.org/whl/torch-2.4.0+cu121.html
+pip install lightning
