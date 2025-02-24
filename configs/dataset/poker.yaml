@@ -1,0 +1,28 @@
+name: ncaltech101
+path: dataset/ncaltech
+general:
+  dim: (240, 180)
+  num_classes: 100
+  time_window: 50000 # us
+  train_split: 0.8
+  test_split: 0.1
+  val_split: 0.1
+
+train:
+  batch_size: 8
+  num_workers: 4
+
+data_augmentation:
+  random: ???
+
+representation:
+  cnn:
+    type: event_frame
+  vit:
+    type: event_voxel
+    time_window: 10
+  gcn:
+    type: event_graph
+    radius: 5
+
+    
