@@ -41,7 +41,25 @@ class LNRecognition(L.LightningModule):
 
     def configure_optimizers(self):
         optimizer = torch.optim.AdamW(self.parameters(), lr=self.lr, weight_decay=self.weight_decay)
-        return optimizer
+
+        lr_scheduler = torch.optim.lr_scheduler.OneCycleLR(
+            optimizer=optimizer,
+            max_lr=self.lr,
+            div_factor=25,
+            final_div_factor=10000 / 25,
+            total_steps=150000,
+            pct_start=0.005,
+            cycle_momentum=False,
+            anneal_strategy='linear')
+        lr_scheduler_config = {
+            "scheduler": lr_scheduler,
+            "interval": "step",
+            "frequency": 1,
+            "strict": True,
+            "name": 'learning_rate',
+        }
+
+        return {'optimizer': optimizer, 'lr_scheduler': lr_scheduler_config}
 
     def forward(self, data):
         x = self.model(data)
@@ -76,10 +94,16 @@ class LNRecognition(L.LightningModule):
     
     def test_step(self, batch, batch_idx):
         outputs = self.forward(data=batch['x'])
-        loss = self.criterion(outputs, target=torch.tensor(batch['y']).long().to('cuda'))
 
+        loss = self.criterion(outputs, target=batch['y'])
         y_prediction = torch.argmax(outputs, dim=-1)
-        accuracy = self.accuracy(preds=y_prediction.cpu().unsqueeze(0), target=torch.tensor([batch['y']]))
+        
+        acc = accuracy(preds=y_prediction, target=batch['y'], task="multiclass", num_classes=self.num_classes)
 
         self.log('test_loss', loss, on_epoch=True, logger=True, batch_size=self.batch_size)
-        self.log('test_acc', accuracy, on_epoch=True, logger=True, batch_size=self.batch_size)
+        self.log('test_acc', acc, on_epoch=True, logger=True, batch_size=self.batch_size)
+
+        if self.num_classes > 3:
+            pred = softmax(outputs, dim=-1)
+            top_3 = self.accuracy_top_3(preds=pred, target=batch['y'])
+            self.log('test_acc_top_3', top_3, on_epoch=True, logger=True, batch_size=self.batch_size)

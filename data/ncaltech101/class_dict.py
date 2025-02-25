@@ -98,5 +98,6 @@ ncaltech_dict = {
     'ant': 96,
     'electric_guitar': 97,
     'hedgehog': 98,
-    'lobster': 99
+    'lobster': 99,
+    'BACKGROUND_Google': 100
 }

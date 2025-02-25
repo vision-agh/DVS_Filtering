@@ -1,13 +1,13 @@
 name: ncaltech101
-path: dataset/ncaltech # /net/scratch/hscra/plgrid/plgjeziorek/Datasets/N-Caltech/N-Caltech101_dat
+path:  /net/scratch/hscra/plgrid/plgjeziorek/Datasets/N-Caltech/N-Caltech101_filtered6000 #Caltech101_dat
 general:
   org_dim: [240, 180]
-  num_classes: 100
+  num_classes: 101
   time_window: 50000 # us
 
 train:
-  batch_size: 2
-  num_workers: 2
+  batch_size: 16
+  num_workers: 8
   lr: 0.0001
   weight_decay: 0.0001
   epochs: 100

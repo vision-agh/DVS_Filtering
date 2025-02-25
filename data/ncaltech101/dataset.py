@@ -37,9 +37,9 @@ class NCaltech101(L.LightningDataModule):
         self.class_dict = ncaltech_dict
     
     def setup(self, stage=None):
-        data_files_train = glob.glob(os.path.join(self.path, 'training', '*.dat'))
-        data_files_test = glob.glob(os.path.join(self.path, 'testing', '*.dat'))
-        data_files_val = glob.glob(os.path.join(self.path, 'validation', '*.dat'))
+        data_files_train = glob.glob(os.path.join(self.path, 'training', '*', '*.dat'))
+        data_files_test = glob.glob(os.path.join(self.path, 'testing', '*', '*.dat'))
+        data_files_val = glob.glob(os.path.join(self.path, 'validation', '*', '*.dat'))
 
         self.train_data = DS(data_files_train, 
                             augmentation=True, 
@@ -114,7 +114,14 @@ class DS(Dataset):
         data = load_cd_events(data_file)
         data = torch.tensor(data, dtype=torch.float32)
 
+        data = data.clone()
+        data[:, 2] = torch.where(data[:, 2] == 2, torch.tensor(0, dtype=torch.float32), data[:, 2])
+        data[:, 2] = torch.where(data[:, 2] == 3, torch.tensor(1, dtype=torch.float32), data[:, 2])
+
         data = self.cut_events(data)
+
+        class_name = data_file.split('/')[-2]
+        class_id = ncaltech_dict[class_name]
 
         if self.augmentation:
             data = self.random_h_flip(data)
@@ -124,7 +131,7 @@ class DS(Dataset):
             data = self.crop(data)
 
         representation = self.generate_representation(data)
-        return representation, 0
+        return representation, class_id
     
     def cut_events(self, events):
         time_window = self.cfg.general.time_window
