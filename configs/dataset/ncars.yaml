@@ -1,0 +1,63 @@
+name: ncars
+path:  /net/scratch/hscra/plgrid/plgjeziorek/Datasets/NCARS/NCARS_dat
+general:
+  org_dim: [120, 100]
+  num_classes: 2
+  time_window: 100000 # us
+
+train:
+  batch_size: 32
+  num_workers: 16
+  lr: 0.0001
+  weight_decay: 0.0001
+  epochs: 200
+  optimizer: adamW
+
+augmentation:
+  h_flip:
+    p: 0.5
+  random_crop:
+    p: 0.5
+    size: [0.75, 0.75]
+    dim: [0, 1]
+  random_zoom:
+    zoom: [1, 1]
+    subsample: True
+  translate:
+    size: [0.1, 0.1]
+  crop:
+    min: [0, 0]
+    max: [1, 1]
+
+representation:
+  type: ???
+  event_frame:
+    dim: [120, 100]
+  event_voxel:
+    T: 10
+    time_window: 100000
+    dim: [120, 100]
+  event_spikes:
+    T: 10
+    time_window: 100000
+    dim: [120, 100]
+
+model:
+  cnn:
+    weights: False
+    model_name: resnet18
+    channels: 2
+  vit:
+    dim_conv_stem: 64
+    dim: 64
+    dim_head: 32
+    depth: [1, 1, 1, 1]
+    window_size: 4
+    mbconv_expansion_rate: 4
+    mbconv_shrinkage_rate: 0.25
+    dropout: 0.1
+    channels: 20
+  snn:
+    pretrained: False
+    detach_reset: True
+    channels: 2

@@ -1,0 +1,3 @@
+pretrained: False
+detach_reset: True
+channels: 2

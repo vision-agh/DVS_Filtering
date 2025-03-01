@@ -1,5 +1,5 @@
 name: ncaltech101
-path:  /net/scratch/hscra/plgrid/plgjeziorek/Datasets/N-Caltech/N-Caltech101_filtered6000 #Caltech101_dat
+path:  /home/lsriw/DVS_Filtering/dataset/N-Caltech/N-Caltech101_dat
 general:
   org_dim: [240, 180]
   num_classes: 101
@@ -10,7 +10,7 @@ train:
   num_workers: 8
   lr: 0.0001
   weight_decay: 0.0001
-  epochs: 100
+  epochs: 200
   optimizer: adamW
 
 augmentation:
@@ -34,10 +34,13 @@ representation:
   event_frame:
     dim: [240, 180]
   event_voxel:
-    time_window: 10
+    T: 10
+    time_window: 50000
+    dim: [240, 180]
+  event_spikes:
+    T: 10
+    time_window: 50000
     dim: [240, 180]
   event_graph:
     radius: 5
     dim: [240, 180]
-
-    

@@ -8,21 +8,30 @@ from lightning.pytorch.callbacks import ModelCheckpoint, LearningRateMonitor
 
 from omegaconf import OmegaConf
 from data.ncaltech101.dataset import NCaltech101
+from data.ncars.dataset import NCars
 from model.recognition import LNRecognition
+
+from configs.dirs_datasets import dirs_ncaltech, dirs_ncars
 
 def main(args):
 
+    print(args.ckpt_path)
     cfg_dataset = OmegaConf.load(args.config_data)
+    cfg_dataset.train.all_noisy = False
 
-    if 'cnn' in args.config_model:
+    if 'cnn' in args.model:
+        model_type = 'cnn'
         cfg_dataset.representation.type = 'event_frame'
-    elif 'vit' in args.config_model:
+    elif 'vit' in args.model:
+        model_type = 'vit'
         cfg_dataset.representation.type = 'event_voxel'
+    elif 'snn' in args.model:
+        model_type = 'snn'
+        cfg_dataset.representation.type = 'event_spikes'
 
-    cfg_model = OmegaConf.load(args.config_model)
+    cfg_model = cfg_dataset.model[model_type]
 
     model = LNRecognition(cfg_dataset, cfg_model)
-
 
     # wandb_logger = WandbLogger(project=f'dvs_filtering', name=f'{cfg_dataset.name}_{cfg_model.stage.downsample.type}')
     # wandb_logger.watch(model)
@@ -34,25 +43,16 @@ def main(args):
                         deterministic=True,
                         devices=1)
 
-    model = LNRecognition.load_from_checkpoint(checkpoint_path="/net/scratch/hscra/plgrid/plgjeziorek/DVS_Filtering/checkpoints/best_model_filtered.ckpt", 
+    model = LNRecognition.load_from_checkpoint(checkpoint_path=args.ckpt_path, 
                                                 cfg_dataset=cfg_dataset, 
                                                 cfg_model=cfg_model)
 
-    dirs = ['/net/scratch/hscra/plgrid/plgjeziorek/Datasets/N-Caltech/N-Caltech101_dat',
-            '/net/scratch/hscra/plgrid/plgjeziorek/Datasets/N-Caltech/N-Caltech101_filtered6000',
-            '/net/scratch/hscra/plgrid/plgjeziorek/Datasets/N-Caltech/N-Caltech101_filtered6000_noise/0.1',
-            '/net/scratch/hscra/plgrid/plgjeziorek/Datasets/N-Caltech/N-Caltech101_filtered6000_noise/0.01',
-            '/net/scratch/hscra/plgrid/plgjeziorek/Datasets/N-Caltech/N-Caltech101_filtered6000_noise/0.5',
-            '/net/scratch/hscra/plgrid/plgjeziorek/Datasets/N-Caltech/N-Caltech101_filtered6000_noise/0.05',
-            '/net/scratch/hscra/plgrid/plgjeziorek/Datasets/N-Caltech/N-Caltech101_filtered6000_noise/0.25',
-            '/net/scratch/hscra/plgrid/plgjeziorek/Datasets/N-Caltech/N-Caltech101_filtered6000_noise/0.75',
-            '/net/scratch/hscra/plgrid/plgjeziorek/Datasets/N-Caltech/N-Caltech101_filtered6000_noise/1',
-            '/net/scratch/hscra/plgrid/plgjeziorek/Datasets/N-Caltech/N-Caltech101_filtered6000_noise/1.5',
-            '/net/scratch/hscra/plgrid/plgjeziorek/Datasets/N-Caltech/N-Caltech101_filtered6000_noise/2',
-            '/net/scratch/hscra/plgrid/plgjeziorek/Datasets/N-Caltech/N-Caltech101_filtered6000_noise/2.5',
-            '/net/scratch/hscra/plgrid/plgjeziorek/Datasets/N-Caltech/N-Caltech101_filtered6000_noise/3',
-            '/net/scratch/hscra/plgrid/plgjeziorek/Datasets/N-Caltech/N-Caltech101_filtered6000_noise/4',
-            '/net/scratch/hscra/plgrid/plgjeziorek/Datasets/N-Caltech/N-Caltech101_filtered6000_noise/5']
+    
+    if 'ncaltech' in args.config_data:
+        dirs = dirs_ncaltech
+    
+    elif 'ncars' in args.config_data:
+        dirs = dirs_ncars
 
     for directory in dirs:
         print("#######################################################")
@@ -60,15 +60,20 @@ def main(args):
         print("#######################################################")
 
         cfg_dataset.path = directory
-        dm = NCaltech101(cfg_dataset, cfg_model)
+        if 'ncaltech' in args.config_data:
+            dm = NCaltech101(cfg_dataset, cfg_model)
+        
+        elif 'ncars' in args.config_data:
+            dm = NCars(cfg_dataset, cfg_model)
         dm.setup()
 
         trainer.test(model, dm)
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
-    parser.add_argument('-cd', '--config_data', type=str, default='configs/dataset/ncaltech.yaml')
-    parser.add_argument('-cm', '--config_model', type=str, default='configs/model/cnn.yaml')
+    parser.add_argument('-cd', '--config_data', type=str, default='configs/dataset/ncars.yaml')
+    parser.add_argument('-m', '--model', type=str, default='snn')
+    parser.add_argument('-ckpt', '--ckpt_path', type=str, default='/net/scratch/hscra/plgrid/plgjeziorek/DVS_Filtering/checkpoints/best_model_original.ckpt')
 
     args = parser.parse_args()
     main(args)

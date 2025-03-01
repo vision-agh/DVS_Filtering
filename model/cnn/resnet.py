@@ -77,12 +77,12 @@ class Classifier(torch.nn.Module):
     
 class ResNetModel(torch.nn.Module):
     def __init__(self, 
-                 input_channels,
-                 model_name='resnet18',
-                 num_classes=10,
-                 weights=None):
+                 cfg,
+                 num_classes=10):
         super(ResNetModel, self).__init__()
-        self.backbone = Backbone(input_channels, model_name, weights)
+        self.backbone = Backbone(   cfg.channels, 
+                                    cfg.model_name, 
+                                    cfg.weights)
         self.classifier = Classifier(num_classes, input_size=512)
         
     def forward(self, x):

@@ -54,25 +54,17 @@ class MaxPoolingX(torch.nn.Module):
     def __repr__(self):
         return f"{self.__class__.__name__}(voxel_size={self.voxel_size}, size={self.size})"
 
-class GraphRes(torch.nn.Module):
+class GraphResNet(torch.nn.Module):
 
-    def __init__(self, dataset, input_shape: torch.Tensor, num_outputs: int, pooling_size=(16, 12),
+    def __init__(self, input_shape: torch.Tensor, num_outputs: int, pooling_size=(16, 12),
                  bias: bool = False, root_weight: bool = False):
         super(GraphRes, self).__init__()
         assert len(input_shape) == 3, "invalid input shape, should be (img_width, img_height, dim)"
         dim = int(input_shape[-1])
 
-        # Set dataset specific hyper-parameters.
-        if dataset == "ncars":
-            kernel_size = 2
-            n = [1, 8, 16, 16, 16, 32, 32, 32, 32]
-            pooling_outputs = 32
-        elif dataset == "ncaltech101" or dataset == "gen1":
-            kernel_size = 8
-            n = [1, 16, 32, 32, 32, 128, 128, 128]
-            pooling_outputs = 128
-        else:
-            raise NotImplementedError(f"No model parameters for dataset {dataset}")
+        kernel_size = 8
+        n = [1, 16, 32, 32, 32, 128, 128, 128]
+        pooling_outputs = 128
 
         self.conv1 = SplineConv(n[0], n[1], dim=dim, kernel_size=kernel_size, bias=bias, root_weight=root_weight)
         self.norm1 = BatchNorm(in_channels=n[1])
@@ -123,16 +115,3 @@ class GraphRes(torch.nn.Module):
         x = self.pool7(data.x, pos=data.pos[:, :2], batch=data.batch)
         x = x.view(-1, self.fc.in_features)
         return self.fc(x)
-    
-
-model = GraphRes("ncaltech101", (256, 320, 3), 100)
-print(model)
-
-# trainable parameters
-pp=0
-for p in list(model.parameters()):
-    nn=1
-    for s in list(p.size()):
-        nn = nn*s
-    pp += nn
-print("Total trainable parameters:", pp)
