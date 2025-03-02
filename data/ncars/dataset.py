@@ -178,7 +178,7 @@ class DS(Dataset):
             return generate_event_voxel(events, self.cfg)
         elif rep_type == 'event_spikes':
             return generate_event_spikes(events, self.cfg)
-        elif rep_type == 'event_graph'
+        elif rep_type == 'event_graph':
             return generate_event_graph(events, self.cfg)
         else:
             raise ValueError(f"Representation type {rep_type} not supported.")

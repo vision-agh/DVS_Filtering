@@ -14,7 +14,7 @@ def generate_event_frame(events, cfg):
     frame = torch.zeros(2, H, W, dtype=torch.float32)
 
     indices = torch.stack([ p, 
-                            t, 
+                            y, 
                             x], dim=0)
 
     values = torch.ones_like(events[:, 0], dtype=torch.float32)
@@ -36,14 +36,13 @@ def generate_event_voxel(events, cfg):
     if x.numel() == 0:
         return torch.zeros(2*T, H, W, dtype=torch.float32)
     
-    # Normalize time from 50000 to T
     t = events[:, 3].long() - events[:, 3].min()
     t = t / time_window
     t = t * T
     t = torch.floor(t).long()
+    t = torch.clamp(t, min=0, max=T-1)
 
     voxel = torch.zeros(2, T, height, width, dtype=torch.float32)
-
     indices = torch.stack([ p, 
                             t,
                             y, 
@@ -54,7 +53,6 @@ def generate_event_voxel(events, cfg):
 
     voxel = voxel.reshape(-1, height, width)
     voxel = transforms.Resize((H, W))(voxel)
-
     return voxel
 
 

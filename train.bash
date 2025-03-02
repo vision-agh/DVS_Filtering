@@ -3,7 +3,7 @@
 #SBATCH --ntasks-per-node=1
 #SBATCH --cpus-per-task=16
 #SBATCH --gres=gpu:1
-#SBATCH --time=12:00:00
+#SBATCH --time=0:10:00
 #SBATCH --account=plgevent-gpu-gh200
 #SBATCH --partition=plgrid-gpu-gh200
 #SBATCH --output=out/job-%j.out
@@ -21,4 +21,4 @@ source /net/scratch/hscra/plgrid/plgjeziorek/dvs_fil/bin/activate
 
 export SSL_CERT_FILE=/net/scratch/hscra/plgrid/plgjeziorek/dvs_fil/lib/python3.11/site-packages/certifi/cacert.pem
 
-python train.py -cd "$CONFIG_DATASET" -d "$DATASET_PATH" -m "snn" -all True
+python train.py -cd "$CONFIG_DATASET" -d "$DATASET_PATH" -m "cnn"
