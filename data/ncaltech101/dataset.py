@@ -3,21 +3,17 @@ import glob
 import numpy as np
 import lightning as L
 import torch_geometric
-
 import cv2
 import numba
-
 import torch
 import torch.nn as nn
 
 from torch.utils.data import DataLoader, Dataset
+
 from .class_dict import ncaltech_dict
 from data.utils.load_data import load_cd_events
-
-from data.utils.augmentation import RandomHFlip, RandomCrop, RandomZoom, RandomTranslate, Crop
-
-import torchvision.transforms as transforms
-
+from data.utils.augmentation import RandomHFlip, RandomCrop, RandomTranslate, Crop
+from data.utils.representations import generate_event_frame, generate_event_voxel, generate_event_spikes, generate_event_graph
 
 #########################################################################
 ############################## DATA MODULE ##############################
@@ -118,9 +114,8 @@ class DS(Dataset):
         data_file = self.files[index]
 
         #changed start
-        list_aug = ['0.1', '0.01', '0.5', '0.05', '0.25', '0.75', '1', '1.5', '2', '2.5', '3', '4', '5']
-
         if self.augmentation and self.cfg.train.all_noisy:
+            list_aug = ['0.1', '0.01', '0.5', '0.05', '0.25', '0.75', '1', '1.5', '2', '2.5', '3', '4', '5']
             aug = np.random.choice(list_aug)
             data_file = data_file.replace('N-Caltech101_dat', f'N-Caltech101_filtered6000_noise/{aug}')
         # changed end
@@ -141,7 +136,6 @@ class DS(Dataset):
         if self.augmentation:
             data = self.random_h_flip(data)
             data = self.random_crop(data)
-            # data = self.random_zoom(data)
             data = self.random_translate(data)
             data = self.crop(data)
 
@@ -167,101 +161,7 @@ class DS(Dataset):
             return generate_event_voxel(events, self.cfg)
         elif rep_type == 'event_spikes':
             return generate_event_spikes(events, self.cfg)
+        elif rep_type == 'event_graph':
+            return generate_event_spikes(events, self.cfg)
         else:
             raise ValueError(f"Representation type {rep_type} not supported.")
-
-
-#########################################################################
-############################# REPRESENTATION ############################
-#########################################################################
-
-def generate_event_frame(events, cfg):
-    cfg = cfg.representation.event_frame
-    width, height = cfg.dim
-
-    x = events[:, 0].long()
-    y = events[:, 1].long()
-    p = events[:, 2].long()
-
-    frame = torch.zeros(2, height, width, dtype=torch.float32)
-
-    indices = torch.stack([ p, 
-                            t, 
-                            x], dim=0)
-
-    values = torch.ones_like(events[:, 0], dtype=torch.float32)
-    frame.index_put_(tuple(indices), values, accumulate=True)
-    return frame
-
-def generate_event_voxel(events, cfg):
-    time_window = cfg.general.time_window
-
-
-    cfg = cfg.representation.event_voxel
-    T = cfg.T
-    width, height = cfg.dim
-
-    x = events[:, 0].long()
-    y = events[:, 1].long()
-    p = events[:, 2].long()
-
-    if x.numel() == 0:
-        print("No events")
-        return torch.zeros(2*T, 224, 224, dtype=torch.float32)
-    
-    # Normalize time from 50000 to T
-    t = events[:, 3].long() - events[:, 3].min()
-    t = t / time_window
-    t = t * T
-    t = torch.floor(t).long()
-
-    voxel = torch.zeros(2, T, height, width, dtype=torch.float32)
-
-    indices = torch.stack([ p, 
-                            t,
-                            y, 
-                            x], dim=0)
-
-    values = torch.ones_like(events[:, 0], dtype=torch.float32)
-    voxel.index_put_(tuple(indices), values, accumulate=True)
-
-    # merge voxel channels from (2, T, height, width) to (T*2, height, width)
-    voxel = voxel.reshape(-1, height, width)
-
-    # Change shape to 224x224 for ViT
-    voxel = transforms.Resize((224, 224))(voxel)
-
-    return voxel
-
-
-def generate_event_spikes(events, cfg):
-    time_window = cfg.general.time_window
-
-    cfg = cfg.representation.event_voxel
-    T = cfg.T
-    width, height = cfg.dim
-
-    x = events[:, 0].long()
-    y = events[:, 1].long()
-    p = events[:, 2].long()
-
-    if x.numel() == 0:
-        print("No events")
-        return torch.zeros(T, 2, height, width, dtype=torch.float32)
-    
-    # Normalize time from 50000 to T
-    t = events[:, 3].long() - events[:, 3].min()
-    t = t / time_window
-    t = t * T
-    t = torch.floor(t).long()
-
-    voxel = torch.zeros(T, 2, height, width, dtype=torch.float32)
-
-    indices = torch.stack([ t, 
-                            p,
-                            y, 
-                            x], dim=0)
-
-    values = torch.ones_like(events[:, 0], dtype=torch.float32)
-    voxel.index_put_(tuple(indices), values, accumulate=True)
-    return voxel

@@ -36,11 +36,15 @@ representation:
   event_voxel:
     T: 10
     time_window: 100000
-    dim: [120, 100]
+    dim: [128, 128]
   event_spikes:
     T: 10
     time_window: 100000
     dim: [120, 100]
+  event_graph:
+    radius: 0.02
+    max_num_neighbors: 16
+    dim: [1, 1]
 
 model:
   cnn:
@@ -61,3 +65,7 @@ model:
     pretrained: False
     detach_reset: True
     channels: 2
+  gcn:
+    dim: 3
+    kernel_size: 6
+    channels: [1, 16, 32, 32, 32, 128, 128, 128]

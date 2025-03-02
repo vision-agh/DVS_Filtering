@@ -7,9 +7,9 @@ from lightning.pytorch.loggers.wandb import WandbLogger
 from lightning.pytorch.callbacks import ModelCheckpoint, LearningRateMonitor
 
 from omegaconf import OmegaConf
+
 from data.ncaltech101.dataset import NCaltech101
 from data.ncars.dataset import NCars
-# from data.dvs_lip.dataset import DVSLip
 
 from model.recognition import LNRecognition
 
@@ -25,12 +25,19 @@ def main(args):
     if 'cnn' in args.model:
         model_type = 'cnn'
         cfg_dataset.representation.type = 'event_frame'
+        max_epochs = 100
     elif 'vit' in args.model:
         model_type = 'vit'
         cfg_dataset.representation.type = 'event_voxel'
+        max_epochs = 100
     elif 'snn' in args.model:
         model_type = 'snn'
         cfg_dataset.representation.type = 'event_spikes'
+        max_epochs = 200
+    elif 'gcn' in args.model:
+        model_type = 'gcn'
+        cfg_dataset.representation.type = 'event_graph'
+        max_epochs = 200
 
     cfg_model = cfg_dataset.model[model_type]
     
@@ -65,7 +72,7 @@ def main(args):
         save_top_k=1
     )
 
-    trainer = L.Trainer(max_epochs=200, 
+    trainer = L.Trainer(max_epochs=max_epochs, 
                         log_every_n_steps=1, 
                         gradient_clip_val=1.0,
                         logger=wandb_logger,
@@ -78,9 +85,9 @@ def main(args):
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
     parser.add_argument('-cd', '--config_data', type=str, default='configs/dataset/ncaltech.yaml')
+    parser.add_argument('-d', '--dataset', type=str)
     parser.add_argument('-m', '--model', type=str, default='cnn')
     parser.add_argument('-all', '--all_noisy', type=bool, default=False)
-    parser.add_argument('-d', '--dataset', type=str)
 
     args = parser.parse_args()
     main(args)

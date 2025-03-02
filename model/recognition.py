@@ -12,6 +12,11 @@ from model.cnn.resnet import ResNetModel
 from model.vit.maxvit import MaxVitModel
 from model.snn.snn_resnet import SNNResNet
 
+try:
+    from model.gcn.gcn_resnet import SplineGraphResNet, PNGraphResNet
+except ImportError:
+    print("torch_geometric not found")
+
 import wandb
 import numpy as np
 import matplotlib.pyplot as plt
@@ -38,6 +43,12 @@ class LNRecognition(L.LightningModule):
         elif cfg_dataset.representation.type == 'event_spikes':
             self.model = SNNResNet( cfg_model,
                                     num_classes=self.num_classes)
+
+        elif cfg_dataset.representation.type == 'event_graph':
+            self.model = SplineGraphResNet( cfg_model,
+                                    num_classes=self.num_classes)
+        else:
+            raise ValueError(f"Invalid representation type: {cfg_dataset.representation.type}")
 
         self.criterion = torch.nn.CrossEntropyLoss()
         self.accuracy = Accuracy(task="multiclass", num_classes=self.num_classes)
