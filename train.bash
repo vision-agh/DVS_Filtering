@@ -10,8 +10,8 @@
 #SBATCH --error=out/job-%j.err
  
 
-CONFIG_DATASET="/net/scratch/hscra/plgrid/plgjeziorek/DVS_Filtering/configs/dataset/ncars.yaml"
-DATASET_PATH="/net/scratch/hscra/plgrid/plgjeziorek/Datasets/NCARS/NCARS_dat"
+CONFIG_DATASET="/net/scratch/hscra/plgrid/plgjeziorek/DVS_Filtering/configs/dataset/ncaltech.yaml"
+DATASET_PATH="/net/scratch/hscra/plgrid/plgjeziorek/Datasets/N-Caltech101/N-Caltech101_dat"
 
 # IMPORTANT: load the modules for machine learning tasks and libraries
 ml ML-bundle/24.06a
@@ -21,4 +21,4 @@ source /net/scratch/hscra/plgrid/plgjeziorek/dvs_fil/bin/activate
 
 export SSL_CERT_FILE=/net/scratch/hscra/plgrid/plgjeziorek/dvs_fil/lib/python3.11/site-packages/certifi/cacert.pem
 
-python train.py -cd "$CONFIG_DATASET" -d "$DATASET_PATH" -m "cnn"
+python train.py -cd "$CONFIG_DATASET" -d "$DATASET_PATH" -m "vit"

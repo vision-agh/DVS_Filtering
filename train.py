@@ -46,7 +46,6 @@ def main(args):
 
     if 'ncaltech' in args.config_data:
         dm = NCaltech101(cfg_dataset, cfg_model)
-    
     elif 'ncars' in args.config_data:
         dm = NCars(cfg_dataset, cfg_model)
 

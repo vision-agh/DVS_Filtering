@@ -50,7 +50,7 @@ class RandomHFlip:
         cfg_flip = cfg.augmentation.h_flip
         self.p = cfg_flip.p
 
-        self.width, self.height  = cfg.representation[cfg.representation.type].dim
+        self.width, self.height  = cfg.general.org_dim
 
     def __call__(self, events: torch.tensor) -> torch.tensor:
         if torch.rand(1) < self.p:
@@ -61,7 +61,7 @@ class RandomCrop:
     def __init__(self, cfg):
         cfg_crop = cfg.augmentation.random_crop
 
-        width, height  = cfg.representation[cfg.representation.type].dim
+        width, height  = cfg.general.org_dim
         self.p = cfg_crop.p
         self.size = torch.as_tensor(cfg_crop.size)
         self.dim = cfg_crop.dim
@@ -87,7 +87,7 @@ class RandomZoom:
         self.zoom = cfg_zoom.zoom
         self.subsample = cfg_zoom.subsample
 
-        self.width, self.height  = cfg.representation[cfg.representation.type].dim
+        self.width, self.height  = cfg.general.org_dim
 
         if self.subsample:
             self._count = None
@@ -124,7 +124,7 @@ class RandomTranslate:
         cfg_translate = cfg.augmentation.translate
         self.size = torch.as_tensor(cfg_translate.size).float()
 
-        width, height  = cfg.representation[cfg.representation.type].dim
+        width, height  = cfg.general.org_dim
 
         size = [width, height]
         self.size = torch.IntTensor([_scale_and_clip(s, ss) for s, ss in zip(self.size, size)])
@@ -142,7 +142,7 @@ class Crop:
         self.min = torch.as_tensor(cfg_crop.min)
         self.max = torch.as_tensor(cfg_crop.max)
 
-        width, height  = cfg.representation[cfg.representation.type].dim
+        width, height  = cfg.general.org_dim
 
         size = [width, height]
         self.max = torch.IntTensor([_scale_and_clip(m, s) for m, s in zip(self.max, size)])
