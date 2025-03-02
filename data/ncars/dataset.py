@@ -74,7 +74,7 @@ class NCars(L.LightningDataModule):
                             batch_size=self.cfg_dataset.train.batch_size, 
                             num_workers=self.cfg_dataset.train.num_workers, 
                             shuffle=True, 
-                            collate_fn=self.collate_fn, 
+                            collate_fn=self.collate_fn_graph if self.cfg_dataset.representation.type == 'event_graph' else self.collate_fn_dense, 
                             persistent_workers=False)
 
     def val_dataloader(self):
@@ -82,7 +82,7 @@ class NCars(L.LightningDataModule):
                             batch_size=self.cfg_dataset.train.batch_size, 
                             num_workers=self.cfg_dataset.train.num_workers, 
                             shuffle=False, 
-                            collate_fn=self.collate_fn, 
+                            collate_fn=self.collate_fn_graph if self.cfg_dataset.representation.type == 'event_graph' else self.collate_fn_dense, 
                             persistent_workers=False)
     
     def test_dataloader(self):
@@ -90,17 +90,27 @@ class NCars(L.LightningDataModule):
                             batch_size=self.cfg_dataset.train.batch_size, 
                             num_workers=self.cfg_dataset.train.num_workers, 
                             shuffle=False, 
-                            collate_fn=self.collate_fn, 
+                            collate_fn=self.collate_fn_graph if self.cfg_dataset.representation.type == 'event_graph' else self.collate_fn_dense, 
                             persistent_workers=False)
     
     @staticmethod
-    def collate_fn(data_list):
+    def collate_fn_dense(data_list):
         batch_img = [img for img, _ in data_list]
         batch_img = torch.stack(batch_img, dim=0)
         batch_label = [label for _, label in data_list]
         batch_label = torch.tensor(batch_label)
         return {"x": batch_img, 
                 "y": batch_label}
+
+    @staticmethod
+    def collate_fn_graph(data_list):
+        list_graph = [graph for graph, _ in data_list]
+        list_label = [label for _, label in data_list]
+        batch_graph = torch_geometric.data.Batch.from_data_list(list_graph)
+        batch_label = torch.tensor(list_label)
+        return {"x": batch_graph,
+                "y": batch_label}
+
 
 #########################################################################
 ################################ DATASET ################################
@@ -126,23 +136,12 @@ class DS(Dataset):
     
     def __getitem__(self, index: int):
         data_file = self.files[index]
-
-        #changed start
-        if self.augmentation and self.cfg.train.all_noisy:
-            list_aug = ['0.1', '0.01', '0.5', '0.05', '0.25', '0.75', '1', '1.5', '2', '2.5', '3', '4', '5']
-            aug = np.random.choice(list_aug)
-            data_file = data_file.replace('NCARS_dat', f'NCARS_filtered40000_noise/{aug}')
-        # changed end
+        data_file = self.augment_noise(data_file)
+        class_id = self.get_class_id(data_file)
 
         data = load_cd_events(data_file)
         data = torch.tensor(data, dtype=torch.float32)
-        
-        data = data.clone()
-        data[:, 2] = torch.where(data[:, 2] == 2, torch.tensor(0, dtype=torch.float32), data[:, 2])
-        data[:, 2] = torch.where(data[:, 2] == 3, torch.tensor(1, dtype=torch.float32), data[:, 2])
-
-        class_name = data_file.split('/')[-2]
-        class_id = ncars_dict[class_name]
+        data = self.change_polarity(data)
 
         if self.augmentation:
             data = self.random_h_flip(data)
@@ -152,6 +151,24 @@ class DS(Dataset):
 
         representation = self.generate_representation(data)
         return representation, class_id
+
+    def augment_noise(self, data_file):
+        if self.augmentation and self.cfg.train.all_noisy:
+            list_aug = ['0.1', '0.01', '0.5', '0.05', '0.25', '0.75', '1', '1.5', '2', '2.5', '3', '4', '5']
+            aug = np.random.choice(list_aug)
+            data_file = data_file.replace('NCARS_dat', f'NCARS_filtered40000_noise/{aug}')
+        return data_file
+
+    def change_polarity(self, data):
+        data = data.clone()
+        data[:, 2] = torch.where(data[:, 2] == 2, torch.tensor(0, dtype=torch.float32), data[:, 2])
+        data[:, 2] = torch.where(data[:, 2] == 3, torch.tensor(1, dtype=torch.float32), data[:, 2])
+        return data
+
+    def get_class_id(self, data_file):
+        class_name = data_file.split('/')[-2]
+        class_id = ncars_dict[class_name]
+        return class_id
 
     def generate_representation(self, events):
         rep_type = self.cfg.representation.type
