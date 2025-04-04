@@ -21,10 +21,11 @@ def load_cd_events(filename):
         
         ev_type = np.fromfile(f, dtype=np.uint8, count=1)[0] if num_comment_lines > 0 else 0
         ev_size = np.fromfile(f, dtype=np.uint8, count=1)[0] if num_comment_lines > 0 else 8
-        
+
         bof = f.tell()
         f.seek(0, 2)
-        num_events = (f.tell() - bof) // ev_size.astype(np.uint32)
+        ev_size = np.uint32(ev_size)
+        num_events = (f.tell() - bof) // ev_size
         f.seek(bof, 0)
         
         all_data = np.fromfile(f, dtype=np.uint32, count=num_events * 2)

@@ -3,15 +3,15 @@
 #SBATCH --ntasks-per-node=1
 #SBATCH --cpus-per-task=16
 #SBATCH --gres=gpu:1
-#SBATCH --time=0:10:00
+#SBATCH --time=48:00:00
 #SBATCH --account=plgevent-gpu-gh200
 #SBATCH --partition=plgrid-gpu-gh200
 #SBATCH --output=out/job-%j.out
 #SBATCH --error=out/job-%j.err
  
 
-CONFIG_DATASET="/net/scratch/hscra/plgrid/plgjeziorek/DVS_Filtering/configs/dataset/ncaltech.yaml"
-DATASET_PATH="/net/scratch/hscra/plgrid/plgjeziorek/Datasets/N-Caltech101/N-Caltech101_dat"
+CONFIG_DATASET="/net/scratch/hscra/plgrid/plgjeziorek/DVS_Filtering/configs/dataset/nimagenet.yaml"
+DATASET_PATH="/net/storage/pr3/plgrid/plgg_dvs_phd/N-miniImageNet_filtered40000"
 
 # IMPORTANT: load the modules for machine learning tasks and libraries
 ml ML-bundle/24.06a

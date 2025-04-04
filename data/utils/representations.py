@@ -2,16 +2,21 @@ import torch
 import numpy as np
 import torchvision.transforms as transforms
 
+from torch_geometric.data import Data
+from torch_geometric.nn.pool import radius_graph
+from torch_geometric.transforms import Cartesian
 
 def generate_event_frame(events, cfg):
+    width, height = cfg.general.org_dim
     cfg = cfg.representation.event_frame
+
     W, H = cfg.dim
 
     x = events[:, 0].long()
     y = events[:, 1].long()
     p = events[:, 2].long()
 
-    frame = torch.zeros(2, H, W, dtype=torch.float32)
+    frame = torch.zeros(2, height, width, dtype=torch.float32)
 
     indices = torch.stack([ p, 
                             y, 
@@ -19,6 +24,7 @@ def generate_event_frame(events, cfg):
 
     values = torch.ones_like(events[:, 0], dtype=torch.float32)
     frame.index_put_(tuple(indices), values, accumulate=True)
+    frame = transforms.Resize((H, W))(frame)
     return frame
 
 def generate_event_voxel(events, cfg):
@@ -57,11 +63,12 @@ def generate_event_voxel(events, cfg):
 
 
 def generate_event_spikes(events, cfg):
+    width, height = cfg.general.org_dim
     time_window = cfg.general.time_window
 
-    cfg = cfg.representation.event_voxel
+    cfg = cfg.representation.event_spikes
     T = cfg.T
-    width, height = cfg.dim
+    W, H = cfg.dim
 
     x = events[:, 0].long()
     y = events[:, 1].long()
@@ -69,7 +76,7 @@ def generate_event_spikes(events, cfg):
 
     if x.numel() == 0:
         print("No events")
-        return torch.zeros(T, 2, height, width, dtype=torch.float32)
+        return torch.zeros(T, 2, H, W, dtype=torch.float32)
     
     # Normalize time from 50000 to T
     t = events[:, 3].long() - events[:, 3].min()
@@ -86,6 +93,7 @@ def generate_event_spikes(events, cfg):
 
     values = torch.ones_like(events[:, 0], dtype=torch.float32)
     voxel.index_put_(tuple(indices), values, accumulate=True)
+    voxel = transforms.Resize((H, W))(voxel)
     return voxel
 
 def generate_event_graph(events, cfg):

@@ -10,7 +10,7 @@ import torch.nn as nn
 
 from torch.utils.data import DataLoader, Dataset
 
-from .class_dict import ncaltech_dict
+from .class_dict import nimagenet_cls
 from data.utils.load_data import load_cd_events
 from data.utils.augmentation import RandomHFlip, RandomCrop, RandomTranslate, Crop
 from data.utils.representations import generate_event_frame, generate_event_voxel, generate_event_spikes, generate_event_graph
@@ -19,7 +19,7 @@ from data.utils.representations import generate_event_frame, generate_event_voxe
 ############################## DATA MODULE ##############################
 #########################################################################
 
-class NCaltech101(L.LightningDataModule):
+class NImageNet(L.LightningDataModule):
     def __init__(self, cfg_dataset, cfg_model):
         super().__init__()
 
@@ -32,15 +32,15 @@ class NCaltech101(L.LightningDataModule):
 
         # Number of classes and class dictionary.
         self.num_classes = cfg_dataset.general.num_classes
-        self.class_dict = ncaltech_dict
+        self.class_dict = nimagenet_cls
     
     def setup(self, stage=None):
-        data_files_train = glob.glob(os.path.join(self.path, 'training', '*', '*.dat'))
-        data_files_test = glob.glob(os.path.join(self.path, 'testing', '*', '*.dat'))
-        data_files_val = glob.glob(os.path.join(self.path, 'validation', '*', '*.dat'))
+        data_files_train = glob.glob(os.path.join(self.path, 'Train', '*', '*.dat'))
+        data_files_test = glob.glob(os.path.join(self.path, 'Validate', '*', '*.dat'))
+        data_files_val = glob.glob(os.path.join(self.path, 'Validate', '*', '*.dat'))
 
         if self.cfg_dataset.train.all_noisy:
-            data_files_val = glob.glob('/net/scratch/hscra/plgrid/plgjeziorek/Datasets/N-Caltech/N-Caltech101_filtered6000_noise/*/validation/*/*.dat')
+            data_files_val = glob.glob('/net/storage/pr3/plgrid/plgg_dvs_phd/N-miniImageNet_filtered40000_noise/*/Validate/*/*.dat')
 
         self.train_data = DS(data_files_train, 
                             augmentation=True, 
@@ -141,13 +141,15 @@ class DS(Dataset):
         if self.augmentation and self.cfg.train.all_noisy:
             list_aug = ['0.1', '0.01', '0.5', '0.05', '0.25', '0.75', '1', '1.5', '2', '2.5', '3', '4', '5']
             aug = np.random.choice(list_aug)
-            data_file = data_file.replace('N-Caltech101_dat', f'N-Caltech101_filtered6000_noise/{aug}')
+            data_file = data_file.replace('N-miniImageNet_dat', f'N-miniImageNet_filtered40000_noise/{aug}')
         return data_file
 
     def cut_events(self, events):
         time_window = self.cfg.general.time_window
 
         num_events = len(events[:, 0])
+        if num_events == 0:
+            return events
         t = events[:, 3][num_events//2]
         idx1 = torch.clip(torch.searchsorted(events[:, 3].contiguous(), t + time_window//2), 0, num_events)
         idx0 = torch.clip(torch.searchsorted(events[:, 3].contiguous(), t - time_window//2), 0, num_events)
@@ -163,7 +165,7 @@ class DS(Dataset):
 
     def get_class_id(self, data_file):
         class_name = data_file.split('/')[-2]
-        class_id = ncaltech_dict[class_name]
+        class_id = nimagenet_cls[class_name]
         return class_id
 
     def generate_representation(self, events):

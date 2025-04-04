@@ -10,6 +10,7 @@ from omegaconf import OmegaConf
 
 from data.ncaltech101.dataset import NCaltech101
 from data.ncars.dataset import NCars
+from data.nimagenet.dataset import NImageNet
 
 from model.recognition import LNRecognition
 
@@ -25,19 +26,19 @@ def main(args):
     if 'cnn' in args.model:
         model_type = 'cnn'
         cfg_dataset.representation.type = 'event_frame'
-        max_epochs = 100
+        max_epochs = 50
     elif 'vit' in args.model:
         model_type = 'vit'
         cfg_dataset.representation.type = 'event_voxel'
-        max_epochs = 100
+        max_epochs = 50
     elif 'snn' in args.model:
         model_type = 'snn'
         cfg_dataset.representation.type = 'event_spikes'
-        max_epochs = 200
+        max_epochs = 50
     elif 'gcn' in args.model:
         model_type = 'gcn'
         cfg_dataset.representation.type = 'event_graph'
-        max_epochs = 200
+        max_epochs = 50
 
     cfg_model = cfg_dataset.model[model_type]
     
@@ -48,6 +49,8 @@ def main(args):
         dm = NCaltech101(cfg_dataset, cfg_model)
     elif 'ncars' in args.config_data:
         dm = NCars(cfg_dataset, cfg_model)
+    elif 'nimagenet' in args.config_data:
+        dm = NImageNet(cfg_dataset, cfg_model)
 
     dm.setup()
 
@@ -77,6 +80,7 @@ def main(args):
                         logger=wandb_logger,
                         callbacks=[lr_monitor, checkpoint_callback],
                         deterministic=True,
+                        check_val_every_n_epoch=2,
                         devices=1)
 
     trainer.fit(model, dm)

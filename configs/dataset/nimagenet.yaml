@@ -1,0 +1,71 @@
+name: nimagenet
+path:  /net/storage/pr3/plgrid/plgg_dvs_phd/N-miniImageNet_dat
+general:
+  org_dim: [640, 480]
+  num_classes: 100
+  time_window: 50000 # us
+
+train:
+  batch_size: 64
+  num_workers: 8
+  lr: 0.0001
+  weight_decay: 0.0001
+  epochs: 200
+  optimizer: adamW
+
+augmentation:
+  h_flip:
+    p: 0.5
+  random_crop:
+    p: 0.5
+    size: [0.75, 0.75]
+    dim: [0, 1]
+  random_zoom:
+    zoom: [1, 1]
+    subsample: True
+  translate:
+    size: [0.1, 0.1]
+  crop:
+    min: [0, 0]
+    max: [1, 1]
+
+representation:
+  type: ???
+  event_frame:
+    dim: [224, 224]
+  event_voxel:
+    T: 10
+    time_window: 50000
+    dim: [224, 224]
+  event_spikes:
+    T: 10
+    time_window: 50000
+    dim: [224, 224]
+  event_graph:
+    radius: 0.02
+    max_num_neighbors: 16
+    dim: [1, 1]
+
+model:
+  cnn:
+    weights: False
+    model_name: resnet18
+    channels: 2
+  vit:
+    dim_conv_stem: 64
+    dim: 64
+    dim_head: 32
+    depth: [1, 1, 1, 1]
+    window_size: 7
+    mbconv_expansion_rate: 4
+    mbconv_shrinkage_rate: 0.25
+    dropout: 0.1
+    channels: 20
+  snn:
+    pretrained: False
+    detach_reset: True
+    channels: 2
+  gcn:
+    dim: 3
+    kernel_size: 6
+    channels: [1, 16, 32, 32, 32, 128, 128, 128]

@@ -2,6 +2,8 @@ import lightning as L
 import argparse
 import multiprocessing as mp
 import wandb
+import glob
+import os
 
 from lightning.pytorch.loggers.wandb import WandbLogger
 from lightning.pytorch.callbacks import ModelCheckpoint, LearningRateMonitor
@@ -9,9 +11,10 @@ from lightning.pytorch.callbacks import ModelCheckpoint, LearningRateMonitor
 from omegaconf import OmegaConf
 from data.ncaltech101.dataset import NCaltech101
 from data.ncars.dataset import NCars
+from data.nimagenet.dataset import NImageNet
 from model.recognition import LNRecognition
 
-from configs.dirs_datasets import dirs_ncaltech, dirs_ncars
+from configs.dirs_datasets import dirs_ncaltech, dirs_ncars, dirs_nimagenet
 
 def main(args):
 
@@ -53,6 +56,13 @@ def main(args):
     
     elif 'ncars' in args.config_data:
         dirs = dirs_ncars
+        
+    elif 'nimagenet' in args.config_data:
+        dirs = dirs_nimagenet
+
+    # For filtered noises use this:
+    dirs = glob.glob(os.path.join(args.dataset, '*'))
+    #
 
     for directory in dirs:
         print("#######################################################")
@@ -65,14 +75,19 @@ def main(args):
         
         elif 'ncars' in args.config_data:
             dm = NCars(cfg_dataset, cfg_model)
+
+        elif 'nimagenet' in args.config_data:
+            dm = NImageNet(cfg_dataset, cfg_model)
+
         dm.setup()
 
         trainer.test(model, dm)
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
-    parser.add_argument('-cd', '--config_data', type=str, default='configs/dataset/ncars.yaml')
-    parser.add_argument('-m', '--model', type=str, default='snn')
+    parser.add_argument('-cd', '--config_data', type=str, default='configs/dataset/ncaltech.yaml')
+    parser.add_argument('-d', '--dataset', type=str, default='cnn')
+    parser.add_argument('-m', '--model', type=str, default='cnn')
     parser.add_argument('-ckpt', '--ckpt_path', type=str, default='/net/scratch/hscra/plgrid/plgjeziorek/DVS_Filtering/checkpoints/best_model_original.ckpt')
 
     args = parser.parse_args()
