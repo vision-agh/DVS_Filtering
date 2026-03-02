@@ -1,35 +1,32 @@
-Na początku planuje zrealizować model CNN, GCN, ViT (potencjalnie SNN) do klasyfikacji. Struktura będzie następująca:
+# Event-Based Classification with Noise Filtering
 
-1. W data/ znajdować się będą moduły do datasetów, preprocessing, augmentacja itd. Pracować będę na danych sparse (przed końcową reprezentacją).
-2. Przetworzone dane będę przesyłać do generatora reprezentacji (CNN - event-frame, ViT - event-voxel (czasowo przestrzenny), GCN - event-graph, SNN - coś tam). Każdy generator będzie przypisany do danego modelu.
-3. Modele będą zaimplementowane w plikach models. Każdy model będzie miał swoje własne parametry, które będą przekazywane z pliku config.yaml.
+This repository is intended for experimenting with and comparing different deep learning models for **event-based classification**, both **with** and **without noise filtering**.
 
+The framework supports multiple model families and their corresponding event representations, allowing consistent comparison across different learning paradigms.
 
-W ramach CNN, planuje wykorzystać 3 wersje ResNet, potencjalnie MobileNet aby był mniejszy.
+## Supported Models
 
-W ramach ViT, planuje wykorzystać MaxVit w 3 rozmiarach 32/48/64 zgodnie z pracą RVT-Event.
+The repository currently includes the following model families:
 
-W ramach GCN, planuje wykorzystać SplineConv w 3 rozmiarach.
+- **CNN** with **ResNet**
+- **Vision Transformer** with **MaxViT**
+- **Graph Neural Network** with **SplineConv**
+- **Spiking Neural Network** with **SpikingJelly-based ResNet**
 
-W ramach SNN, model będzie prawdopodbnie taki sam jak CNN, tylko odpowiednie aktywacje.
+## Data Representations
 
-Taki sam optymalizator do każdego, takie same hiperparametry, takie same metryki. Co do augmentacji, zastosuje również takie same do każdej reprezentacji (więc jakis crop, flip, shift, rotate), który można do każdej z tych reprezentacji zrobić.
+Each model operates on a dedicated representation of event-based data:
 
+- **CNN (ResNet)** → **event frame** representation
+- **ViT (MaxViT)** → **event voxel** representation (spatiotemporal)
+- **GNN (SplineConv)** → **event graph** representation
+- **SNN (SpikingJelly ResNet)** → **spiking-compatible event** representation
 
-Bazuje na RVT-Event oraz implementacji w timm
+## Dependencies
 
-https://github.com/uzh-rpg/RVT
+To create the environment and install the required packages:
 
-https://github.com/huggingface/pytorch-image-models/blob/main/timm/models/maxxvit.py#L680
-
-
-
-Na razie biblioteki to pytorch i standardowe. Dodaje PyTorch Geometric i potencjalne TorchSNN/SpikingJelly.
-
-
-Dodatkowo omegaconf
-
-
+```bash
 conda create -y -n dvs_fil python=3.9
 conda activate dvs_fil
 
