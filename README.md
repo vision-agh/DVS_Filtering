@@ -38,3 +38,45 @@ pip install matplotlib tqdm numba scikit-learn wandb pyyaml opencv-python pybind
 pip install torch_geometric
 pip install pyg_lib torch_scatter torch_sparse torch_cluster torch_spline_conv -f https://data.pyg.org/whl/torch-2.4.0+cu121.html
 pip install lightning
+```
+
+## Noise Generator
+
+A C++ shot-noise generator with Python bindings. It injects random noise events into a clean DVS event stream, simulating real sensor noise.
+
+### Build
+
+```bash
+cd noise_generator
+mkdir -p build && cd build
+cmake ..
+make
+```
+
+This produces `noise_generator_py.cpython-*.so` inside `build/`.
+
+### Python usage
+
+```python
+import sys
+sys.path.insert(0, "noise_generator/build")
+import noise_generator_py as ng
+
+# Create input events: (x, y, polarity, timestamp_us)
+events = [ng.Event2d(x=i % 640, y=i % 480, p=i % 2, t=i * 10) for i in range(1000)]
+
+# Create noise generator
+noise_gen = ng.NoiseGeneratorAlgorithm(
+    width=640,
+    height=480,
+    shot_noise_rate_hz=0.5,   # global shot-noise rate in Hz
+    poisson_divider=20.0,     # controls noise density
+    timestamp_resolution_us=1
+)
+
+# Add noise to the event stream
+noisy_events = noise_gen.process_events(events)
+print(f"Input: {len(events)} events → Output: {len(noisy_events)} events")
+```
+
+`shot_noise_rate_hz=0` disables noise injection and passes events through unchanged.
