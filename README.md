@@ -80,3 +80,16 @@ print(f"Input: {len(events)} events → Output: {len(noisy_events)} events")
 ```
 
 `shot_noise_rate_hz=0` disables noise injection and passes events through unchanged.
+
+If you find the resources usefull, please cite the paper:
+
+```
+@InProceedings{Kowalczyk_2025_CVPR,
+    author    = {Kowalczyk, Marcin and Jeziorek, Kamil and Kryjak, Tomasz},
+    title     = {Learning from Noise: Enhancing DNNs for Event-Based Vision through Controlled Noise Injection},
+    booktitle = {Proceedings of the IEEE/CVF Conference on Computer Vision and Pattern Recognition (CVPR) Workshops},
+    month     = {June},
+    year      = {2025},
+    pages     = {5131-5141}
+}
+```
