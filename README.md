@@ -42,7 +42,7 @@ pip install lightning
 
 ## Noise Generator
 
-A C++ shot-noise generator with Python bindings. It injects random noise events into a clean DVS event stream, simulating real sensor noise.
+A C++ shot-noise generator with Python bindings from [this repository](https://github.com/vision-agh/NoiseGeneratorCPP). It injects random noise events into a clean DVS event stream, simulating real sensor noise.
 
 ### Build
 
