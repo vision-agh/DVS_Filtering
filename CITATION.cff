@@ -1,0 +1,26 @@
+cff-version: 1.2.0
+title: "Learning from Noise: Enhancing DNNs for Event-Based Vision through Controlled Noise Injection"
+message: "If you use this software, please cite the related publication."
+type: software
+authors:
+  - family-names: "Kowalczyk"
+    given-names: "Marcin"
+  - family-names: "Jeziorek"
+    given-names: "Kamil"
+  - family-names: "Kryjak"
+    given-names: "Tomasz"
+preferred-citation:
+  type: paper-conference
+  title: "Learning from Noise: Enhancing DNNs for Event-Based Vision through Controlled Noise Injection"
+  authors:
+    - family-names: "Kowalczyk"
+      given-names: "Marcin"
+    - family-names: "Jeziorek"
+      given-names: "Kamil"
+    - family-names: "Kryjak"
+      given-names: "Tomasz"
+  year: 2025
+  conference-title: "Proceedings of the IEEE/CVF Conference on Computer Vision and Pattern Recognition (CVPR) Workshops"
+  start: 5131
+  end: 5141
+  month: 6
