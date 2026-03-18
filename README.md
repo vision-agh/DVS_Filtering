@@ -81,6 +81,10 @@ print(f"Input: {len(events)} events → Output: {len(noisy_events)} events")
 
 `shot_noise_rate_hz=0` disables noise injection and passes events through unchanged.
 
+All checkpoints and metrics you can find here: 
+
+https://drive.google.com/drive/folders/1fZSEjyxMvcDn3MQCtQLKiXCgGdp0SG5w?usp=sharing
+
 If you find the resources usefull, please cite the paper:
 
 ```
